@@ -1,0 +1,6 @@
+flask-restful
+flask
+json-logging
+Flask-RestPlus
+Flask-Migrate
+Flask-Script

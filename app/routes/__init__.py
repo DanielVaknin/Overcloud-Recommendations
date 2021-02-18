@@ -1,0 +1,1 @@
+from .recommends import recommend as main_route
