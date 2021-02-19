@@ -4,3 +4,4 @@ json-logging
 Flask-RestPlus
 Flask-Migrate
 Flask-Script
+boto3
