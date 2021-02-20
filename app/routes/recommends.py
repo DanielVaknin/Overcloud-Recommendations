@@ -1,6 +1,7 @@
+from threading import Thread
+from app.models.Cloud_Manager import *
 from flask import request, jsonify, Blueprint
 recommend = Blueprint('recommend', __name__)
-from app.models.Cloud_Manager import *
 
 
 @recommend.route("/", methods=['GET'])
@@ -11,9 +12,11 @@ def main_route():
 @recommend.route("/Scan", methods=['POST'])
 def scan():
     identity = request.args.get('identity', None)
-    if identity is None:
-        return jsonify({"status": "error", "error": "Missing identity parameter"})
-    c = CloudManager()
-
+    cloud = request.args.get('cloud', None)
+    if any(param is None for param in (identity, cloud)):
+        return jsonify({"status": "error", "error": "Missing parameters"})
+    c = CloudManager.cloud_provider_identify(identity=identity, cloud=cloud)
+    Thread(target=c.reccomend).start()
+    return jsonify({"status": "ok"})
 
 
