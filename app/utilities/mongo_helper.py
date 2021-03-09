@@ -1,15 +1,15 @@
 import pymongo
+from bson import ObjectId
 
 
 class MongoHelper():
 
     def __init__(self, connection_string):
         self.mongo_client = pymongo.MongoClient(connection_string)
+        self.db = self.mongo_client.OverCloud
 
-    def insert(self, db_name, collection, document):
-        db = self.mongo_client[db_name]
-        return db[collection].insert_one(document)
+    def insert(self, collection, document):
+        return self.db[collection].insert_one(document)
 
-    def find(self, db_name, collection, query):
-        db = self.mongo_client[db_name]
-        return db[collection].find_one(query)
+    def find(self, collection, query):
+        return self.db[collection].find_one(query)
