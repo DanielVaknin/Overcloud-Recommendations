@@ -9,7 +9,7 @@ def main_route():
     return 'OK'
 
 
-@recommends.route("/Scan", methods=['POST'])
+@recommends.route("/scan", methods=['POST'])
 def scan():
     identity = request.get_json().get('identity', None)
     if identity is None:
