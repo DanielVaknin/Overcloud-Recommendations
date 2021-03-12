@@ -1,8 +1,8 @@
-from bson.objectid import ObjectId
 from app.models.recommend_aws import *
+from app.utilities import *
 
 
-class CloudManager():
+class CloudManager:
 
     @staticmethod
     def cloud_provider_identify(identity):
@@ -10,5 +10,5 @@ class CloudManager():
         if cloud_data is None:
             return None
         if cloud_data['cloudProvider'] == "AWS":
-            return recommend_aws(access_key=cloud_data['accessKey'], secret_key=cloud_data['secretKey'])
+            return RecommendAws(access_key=cloud_data['accessKey'], secret_key=cloud_data['secretKey'])
 
