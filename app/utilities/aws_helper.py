@@ -43,7 +43,7 @@ class AWSHelper:
                         'id': volume['VolumeId'],
                         'type': volume['VolumeType'],
                         'size': volume['Size'],
-                        'createTime': volume['CreateTime'],
+                        'createTime': volume['CreateTime'].strftime("%d/%m/%Y"),
                     }
                     unattached_volumes.append(volume_data)
 

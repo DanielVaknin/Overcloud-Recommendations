@@ -17,9 +17,11 @@ class RecommendAws:
 
     def scan_unattached_volumes(self):
         data = self.aws.get_unattached_volumes()
-        mongo_helper.insert(collection="Recommends", document={"volumes_unattached": data})
+        mongo_helper.insert(collection="Recommends", document={"collect_time": datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S"),
+                                                               "unattached_volumes": data})
 
     def scan_old_snapshots(self):
         data = self.aws.get_old_snapshots(days=30)
-        mongo_helper.insert(collection="Recommends", document={"old_snapshots": data})
+        mongo_helper.insert(collection="Recommends", document={"collect_time": datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S"),
+                                                               "old_snapshots": data})
 
