@@ -5,26 +5,28 @@ import boto3
 class AWSHelper:
 
     def __init__(self, aws_access_key_id=None, aws_secret_access_key=None):
+        self.access_key_id = aws_access_key_id
+        self.secret_access_key = aws_secret_access_key
+
+        base_region = 'us-east-1'
+
+        # This is an initial client used just to get the list of all regions
+        self.ec2_initial_client = self.create_boto3_client('ec2', base_region)
+
         self.ec2_clients = []
-
-        self.client = boto3.client('ec2',
-                                   aws_access_key_id=aws_access_key_id,
-                                   aws_secret_access_key=aws_secret_access_key,
-                                   region_name="us-east-1")
-
         for region in self.get_regions():
             self.ec2_clients.append({
                 'region': region,
-                'client': boto3.client('ec2',
-                                       aws_access_key_id=aws_access_key_id,
-                                       aws_secret_access_key=aws_secret_access_key,
-                                       region_name=region)
+                'client': self.create_boto3_client('ec2', region)
             })
 
-        self.sts = boto3.client('sts',
-                                aws_access_key_id=aws_access_key_id,
-                                aws_secret_access_key=aws_secret_access_key,
-                                region_name="us-east-1")
+        self.sts = self.create_boto3_client('sts', base_region)
+
+    def create_boto3_client(self, service, region):
+        return boto3.client(service,
+                            aws_access_key_id=self.access_key_id,
+                            aws_secret_access_key=self.secret_access_key,
+                            region_name=region)
 
     def get_account_user_id(self):
         return self.sts.get_caller_identity().get('Account')
@@ -35,11 +37,13 @@ class AWSHelper:
         for client in self.ec2_clients:
             all_volumes = client['client'].describe_volumes()
             for volume in all_volumes['Volumes']:
-                if volume['State'] != "in-use":
+                if volume['State'] == "available":
                     volume_data = {
                         'region': client['region'],
                         'id': volume['VolumeId'],
-                        'size': volume['Size']
+                        'type': volume['VolumeType'],
+                        'size': volume['Size'],
+                        'createTime': volume['CreateTime'],
                     }
                     unattached_volumes.append(volume_data)
 
@@ -55,7 +59,9 @@ class AWSHelper:
                 if (datetime.datetime.now().date() - snapshot['StartTime'].date()).days > days:
                     snapshot_data = {
                         'region': client['region'],
-                        'id': snapshot['SnapshotId']
+                        'id': snapshot['SnapshotId'],
+                        'volumeId': snapshot['VolumeId'],
+                        'volumeSize': snapshot['VolumeSize'],
                     }
                     old_snapshots.append(snapshot_data)
 
@@ -71,4 +77,4 @@ class AWSHelper:
                     continue
 
     def get_regions(self):
-        return [region['RegionName'] for region in self.client.describe_regions()['Regions']]
+        return [region['RegionName'] for region in self.ec2_initial_client.describe_regions()['Regions']]
