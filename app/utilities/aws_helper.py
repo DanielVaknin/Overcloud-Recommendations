@@ -6,8 +6,12 @@ class AWSHelpr():
     def __init__(self, aws_access_key_id=None, aws_secret_access_key=None):
         self.client = boto3.client('ec2',
                                    aws_access_key_id=aws_access_key_id,
-                                   aws_secret_access_key=aws_secret_access_key)
-        self.sts = boto3.client('sts')
+                                   aws_secret_access_key=aws_secret_access_key,
+                                   region_name="us-east-1")
+        self.sts = boto3.client('sts',
+                                aws_access_key_id=aws_access_key_id,
+                                aws_secret_access_key=aws_secret_access_key,
+                                region_name="us-east-1")
 
     def get_account_user_id(self):
         return self.sts.get_caller_identity().get('Account')
@@ -32,5 +36,4 @@ class AWSHelpr():
                     continue
 
     def get_regions(self):
-        regions = [region['RegionName'] for region in self.client.describe_regions()['Regions']]
-        return regions
+        return [region['RegionName'] for region in self.client.describe_regions()['Regions']]

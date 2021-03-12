@@ -17,7 +17,7 @@ def scan():
     cloud_provider = CloudManager.cloud_provider_identify(identity=identity)
     if cloud_provider is None:
         return jsonify({"status": "error", "error": "Cloud Provider Not Found"}), 404
-    Thread(target=cloud_provider.reccomend).start()
+    Thread(target=cloud_provider.recommend()).start()
     return jsonify({"status": "ok"})
 
 
