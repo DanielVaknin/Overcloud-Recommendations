@@ -1,4 +1,3 @@
-from os import environ
 from flask import Flask
 from app.routes import *
 

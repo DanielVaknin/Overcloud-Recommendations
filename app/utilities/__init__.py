@@ -1,5 +1,3 @@
-from os import environ
-
 from app.utilities.mongo_helper import *
 
 mongo_helper = MongoHelper("mongodb+srv://admin:HMQrrUjrqpnYNJ4R@cluster0.0d9xj.mongodb.net/?authSource=admin&"

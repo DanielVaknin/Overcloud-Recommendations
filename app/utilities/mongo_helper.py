@@ -1,8 +1,7 @@
 import pymongo
-from bson import ObjectId
 
 
-class MongoHelper():
+class MongoHelper:
 
     def __init__(self, connection_string):
         self.mongo_client = pymongo.MongoClient(connection_string)

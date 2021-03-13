@@ -70,7 +70,7 @@ class AWSHelper:
     def delete_snapshots(self, snapshots_id):
         for snapshot_id in snapshots_id:
             try:
-                self.client.delete_snapshot(SnapshotId=snapshot_id)
+                self.ec2_initial_client.delete_snapshot(SnapshotId=snapshot_id)
             except Exception as e:
                 if 'InvalidSnapshot.InUse' in e:
                     print(f"skipping this snapshot: {snapshots_id}")

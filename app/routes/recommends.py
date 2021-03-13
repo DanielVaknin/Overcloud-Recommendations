@@ -19,5 +19,3 @@ def scan():
         return jsonify({"status": "error", "error": "Cloud Provider Not Found"}), 404
     Thread(target=cloud_provider.recommend()).start()
     return jsonify({"status": "ok"})
-
-
