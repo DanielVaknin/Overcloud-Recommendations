@@ -10,14 +10,15 @@ class AWSHelper:
     def __init__(self, aws_access_key_id=None, aws_secret_access_key=None):
         self.access_key_id = aws_access_key_id
         self.secret_access_key = aws_secret_access_key
-
         base_region = 'us-east-1'
 
+        # This client is currently being used only to get the full name of all regions
         self.ssm_client = self.create_boto3_client('ssm', base_region)
 
         # This is an initial client used just to get the list of all regions
         self.ec2_initial_client = self.create_boto3_client('ec2', base_region)
 
+        # Create a map of all regions and their respective EC2 client (like "client factory")
         self.ec2_clients = []
         for region in self.get_regions():
             self.ec2_clients.append({
@@ -26,7 +27,7 @@ class AWSHelper:
                 'client': self.create_boto3_client('ec2', region),
             })
 
-        self.sts = self.create_boto3_client('sts', base_region)
+        self.sts_client = self.create_boto3_client('sts', base_region)
 
         self.pricing_client = self.create_boto3_client('pricing', base_region)
 
@@ -37,7 +38,7 @@ class AWSHelper:
                             region_name=region)
 
     def get_account_user_id(self):
-        return self.sts.get_caller_identity().get('Account')
+        return self.sts_client.get_caller_identity().get('Account')
 
     def get_price_for_resource(self, service_code, region_full_name, filters):
         """
@@ -58,10 +59,15 @@ class AWSHelper:
             Filters=search_filters,
             MaxResults=2
         )
-        respjson = json.loads(''.join(pricing_response['PriceList']))
-        parse1 = respjson['terms']['OnDemand'][list(respjson['terms']['OnDemand'])[0]]
-        price = parse1['priceDimensions'][list(parse1['priceDimensions'])[0]]['pricePerUnit']['USD']
-        price_unit = parse1['priceDimensions'][list(parse1['priceDimensions'])[0]]['unit']
+
+        try:
+            respjson = json.loads(''.join(pricing_response['PriceList']))
+            parse1 = respjson['terms']['OnDemand'][list(respjson['terms']['OnDemand'])[0]]
+            priceDimensions = list(parse1['priceDimensions'])
+            price = parse1['priceDimensions'][priceDimensions[len(priceDimensions) - 1]]['pricePerUnit']['USD']
+            price_unit = parse1['priceDimensions'][priceDimensions[len(priceDimensions) - 1]]['unit']
+        except Exception as e:
+            return None
 
         return {'price': price, 'price_unit': price_unit}
 
@@ -74,22 +80,27 @@ class AWSHelper:
                 if volume['State'] == "available":
                     volume_type = volume['VolumeType']
 
-                    # Get volume price
-                    price = self.get_price_for_resource('AmazonEC2', client['regionFullName'], [
-                        {'Type': 'TERM_MATCH', 'Field': 'productFamily', 'Value': 'storage'},
-                        {'Type': 'TERM_MATCH', 'Field': 'volumeApiName', 'Value': volume_type},
-                    ])
-
                     volume_data = {
                         'region': client['region'],
                         'id': volume['VolumeId'],
                         'type': volume['VolumeType'],
                         'size': volume['Size'],
                         'createTime': volume['CreateTime'].strftime("%d/%m/%Y"),
-                        'price': price['price'],
-                        'priceUnit': price['price_unit'],
-                        'calculatedPrice': str(round(Decimal(price['price'].strip(' "')) * volume['Size'], 2)),
                     }
+
+                    # Get volume price
+                    price = self.get_price_for_resource('AmazonEC2', client['regionFullName'], [
+                        {'Type': 'TERM_MATCH', 'Field': 'productFamily', 'Value': 'storage'},
+                        {'Type': 'TERM_MATCH', 'Field': 'volumeApiName', 'Value': volume_type},
+                    ])
+
+                    if price is not None:
+                        volume_data.update({
+                            'price': price['price'],
+                            'priceUnit': price['price_unit'],
+                            'totalPrice': str(round(Decimal(price['price'].strip(' "')) * volume['Size'], 4)),
+                        })
+
                     unattached_volumes.append(volume_data)
 
         return unattached_volumes
@@ -102,12 +113,27 @@ class AWSHelper:
             all_snapshots = client['client'].describe_snapshots(OwnerIds=[owner_id])
             for snapshot in all_snapshots['Snapshots']:
                 if (datetime.datetime.now().date() - snapshot['StartTime'].date()).days > days:
+
                     snapshot_data = {
                         'region': client['region'],
                         'id': snapshot['SnapshotId'],
                         'volumeId': snapshot['VolumeId'],
                         'volumeSize': snapshot['VolumeSize'],
                     }
+
+                    # Get snapshot price
+                    price = self.get_price_for_resource('AmazonEC2', client['regionFullName'], [
+                        {'Type': 'TERM_MATCH', 'Field': 'productFamily', 'Value': 'Storage Snapshot'},
+                        {'Type': 'TERM_MATCH', 'Field': 'usageType', 'Value': 'EBS:SnapshotUsage'},
+                    ])
+
+                    if price is not None:
+                        snapshot_data.update({
+                            'price': price['price'],
+                            'priceUnit': price['price_unit'],
+                            'totalPrice': str(round(Decimal(price['price'].strip(' "')) * snapshot['VolumeSize'], 4)),
+                        })
+
                     old_snapshots.append(snapshot_data)
 
         return old_snapshots
@@ -118,13 +144,25 @@ class AWSHelper:
         for client in self.ec2_clients:
             response = client['client'].describe_addresses()
             for address in response['Addresses']:
-                allocation_id = address['AllocationId']
                 if 'InstanceId' not in address and 'NetworkInterfaceId' not in address:
                     eip_data = {
                         'region': client['region'],
                         'id': address['AllocationId'],
-                        'pricePerHour': 0.005
                     }
+
+                    # Get snapshot price
+                    price = self.get_price_for_resource('AmazonEC2', client['regionFullName'], [
+                        {'Type': 'TERM_MATCH', 'Field': 'productFamily', 'Value': 'IP Address'},
+                        {'Type': 'TERM_MATCH', 'Field': 'usageType', 'Value': 'ElasticIP:IdleAddress'},
+                    ])
+
+                    if price is not None:
+                        eip_data.update({
+                            'price': price['price'],
+                            'priceUnit': price['price_unit'],
+                            'totalPrice': str(round(Decimal(price['price'].strip(' "')), 4)),
+                        })
+
                     unassociated_eip.append(eip_data)
 
         return unassociated_eip
