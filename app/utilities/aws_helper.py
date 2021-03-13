@@ -67,6 +67,22 @@ class AWSHelper:
 
         return old_snapshots
 
+    def get_unassociated_eip(self):
+        unassociated_eip = []
+
+        for client in self.ec2_clients:
+            response = client['client'].describe_addresses()
+            for address in response['Addresses']:
+                allocation_id = address['AllocationId']
+                if 'InstanceId' not in address and 'NetworkInterfaceId' not in address:
+                    eip_data = {
+                        'region': client['region'],
+                        'id': address['AllocationId'],
+                    }
+                    unassociated_eip.append(eip_data)
+
+        return unassociated_eip
+
     def delete_snapshots(self, snapshots_id):
         for snapshot_id in snapshots_id:
             try:

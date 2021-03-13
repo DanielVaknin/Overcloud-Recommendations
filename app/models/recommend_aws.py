@@ -15,6 +15,7 @@ class RecommendAws:
     def recommend(self):
         self.scan_unattached_volumes()
         self.scan_old_snapshots()
+        self.scan_unassociated_eip()
 
     def scan_unattached_volumes(self):
         data = self.aws.get_unattached_volumes()
@@ -27,3 +28,9 @@ class RecommendAws:
         mongo_helper.insert(collection="Recommends", document={"accountId": self.account_id,
                                                                "collectTime": datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S"),
                                                                "oldSnapshots": data})
+
+    def scan_unassociated_eip(self):
+        data = self.aws.get_unassociated_eip()
+        mongo_helper.insert(collection="Recommends", document={"accountId": self.account_id,
+                                                               "collectTime": datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S"),
+                                                               "unassociatedEIP": data})
