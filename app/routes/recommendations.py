@@ -1,4 +1,8 @@
 from threading import Thread
+
+from bson import json_util
+from bson.errors import InvalidId
+
 from app.models.Cloud_Manager import *
 from flask import request, jsonify, Blueprint
 
@@ -12,8 +16,12 @@ def main_route():
     if cloud_account_id is None:
         return jsonify({"status": "error", "error": "Please provide the ID of the cloud account"}), 422
 
-    result = CloudManager.get_recommendations_for_cloud_provider(cloud_account_id, recommendation_id)
-    return jsonify({"status": "ok", "recommendations": result})
+    try:
+        result = CloudManager.get_recommendations_for_cloud_provider(cloud_account_id, recommendation_id)
+    except InvalidId as e:
+        return jsonify({"status": "error", "error": "There is no recommendation with such ID"}), 404
+
+    return jsonify({"status": "ok", "recommendations": json.loads(json_util.dumps(result))})
 
 
 @recommendations.route("/scan", methods=['POST'])

@@ -19,5 +19,5 @@ class CloudManager:
         if recommendation_id is None:
             result = mongo_helper.find_all(collection='recommendations', query={'accountId': cloud_account_id})
         else:
-            result = mongo_helper.find_all(collection='recommendations', query={'accountId': cloud_account_id, '_id': recommendation_id})
+            result = mongo_helper.find_all(collection='recommendations', query={'accountId': cloud_account_id, '_id': ObjectId(recommendation_id)})
         return [rec for rec in result]
