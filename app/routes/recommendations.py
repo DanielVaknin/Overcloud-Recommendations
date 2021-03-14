@@ -20,7 +20,6 @@ def main_route():
         result = CloudManager.get_recommendations_for_cloud_provider(cloud_account_id, recommendation_id)
     except InvalidId as e:
         return jsonify({"status": "error", "error": "There is no recommendation with such ID"}), 404
-
     return jsonify({"status": "ok", "recommendations": json.loads(json_util.dumps(result))})
 
 
