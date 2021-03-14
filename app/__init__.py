@@ -5,6 +5,6 @@ from app.routes import *
 def create_app():
     app = Flask(__name__)
 
-    app.register_blueprint(recommends, url_prefix='/recommends')
+    app.register_blueprint(recommendations, url_prefix='/recommendations')
 
     return app

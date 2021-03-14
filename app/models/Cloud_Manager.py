@@ -13,3 +13,11 @@ class CloudManager:
             return None
         if cloud_data['cloudProvider'] == "AWS":
             return RecommendAws(account_id=cloud_data['_id'], access_key=cloud_data['accessKey'], secret_key=cloud_data['secretKey'])
+
+    @staticmethod
+    def get_recommendations_for_cloud_provider(cloud_account_id, recommendation_id=None):
+        if recommendation_id is None:
+            result = mongo_helper.find_all(collection='recommendations', query={'accountId': cloud_account_id})
+        else:
+            result = mongo_helper.find_all(collection='recommendations', query={'accountId': cloud_account_id, '_id': recommendation_id})
+        return [rec for rec in result]
