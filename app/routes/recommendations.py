@@ -9,7 +9,7 @@ from flask import request, jsonify, Blueprint
 recommendations = Blueprint('recommendations', __name__)
 
 
-@recommendations.route("/", methods=['GET'])
+@recommendations.route("", methods=['GET'])
 def main_route():
     cloud_account_id = request.args.get('cloud_account', None)
     recommendation_id = request.args.get('recommendation', None)
