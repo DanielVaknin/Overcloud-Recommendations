@@ -1,1 +1,1 @@
-from .recommends import recommends
+from .recommendations import recommendations
