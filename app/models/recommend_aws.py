@@ -22,21 +22,21 @@ class RecommendAws:
 
     def scan_unattached_volumes(self):
         data = self.aws.get_unattached_volumes()
-        mongo_helper.insert(collection="recommendations", document={"name": "unattached_volumes",
+        mongo_helper.insert(collection="recommendations", document={"name": "Unattached Volumes",
                                                                     "accountId": self.account_id,
                                                                     "collectTime": datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S"),
-                                                                    "unattachedVolumes": data})
+                                                                    "data": data})
 
     def scan_old_snapshots(self):
         data = self.aws.get_old_snapshots(days=30)
-        mongo_helper.insert(collection="recommendations", document={"name": "old_snapshots",
+        mongo_helper.insert(collection="recommendations", document={"name": "Old Snapshots",
                                                                     "accountId": self.account_id,
                                                                     "collectTime": datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S"),
-                                                                    "oldSnapshots": data})
+                                                                    "data": data})
 
     def scan_unassociated_eip(self):
         data = self.aws.get_unassociated_eip()
-        mongo_helper.insert(collection="recommendations", document={"name": "unassociated_eip",
+        mongo_helper.insert(collection="recommendations", document={"name": "Unassociated EIPs",
                                                                     "accountId": self.account_id,
                                                                     "collectTime": datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S"),
-                                                                    "unassociatedEIP": data})
+                                                                    "data": data})
