@@ -1,10 +1,17 @@
 import logging
-import uuid
 
 from app.utilities.aws_helper import *
 from app.utilities import mongo_helper
 
 logger = logging.getLogger(__name__)
+
+
+def get_total_price(data):
+    total_price = 0
+    for item in data:
+        if 'totalPrice' in item:
+            total_price += float(item['totalPrice'].strip(' "'))
+    return total_price
 
 
 class RecommendAws:
@@ -25,6 +32,7 @@ class RecommendAws:
         mongo_helper.insert(collection="recommendations", document={"name": "Unattached Volumes",
                                                                     "accountId": self.account_id,
                                                                     "collectTime": datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S"),
+                                                                    "totalPrice": str(round(get_total_price(data), 4)),
                                                                     "data": data})
 
     def scan_old_snapshots(self):
@@ -32,6 +40,7 @@ class RecommendAws:
         mongo_helper.insert(collection="recommendations", document={"name": "Old Snapshots",
                                                                     "accountId": self.account_id,
                                                                     "collectTime": datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S"),
+                                                                    "totalPrice": str(round(get_total_price(data), 4)),
                                                                     "data": data})
 
     def scan_unassociated_eip(self):
@@ -39,4 +48,5 @@ class RecommendAws:
         mongo_helper.insert(collection="recommendations", document={"name": "Unassociated EIPs",
                                                                     "accountId": self.account_id,
                                                                     "collectTime": datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S"),
+                                                                    "totalPrice": str(round(get_total_price(data), 4)),
                                                                     "data": data})
