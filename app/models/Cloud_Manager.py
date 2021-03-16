@@ -4,16 +4,16 @@ from app.models.recommend_aws import *
 from app.utilities import *
 
 
-def get_cloud_account_from_mongo(identity):
-    cloud_data = mongo_helper.find(collection="cloudaccounts", query={'_id': ObjectId(identity)})
-    return cloud_data
-
-
 class CloudManager:
 
     @staticmethod
+    def get_cloud_account_from_mongo(identity):
+        cloud_data = mongo_helper.find(collection="cloudaccounts", query={'_id': ObjectId(identity)})
+        return cloud_data
+
+    @staticmethod
     def cloud_provider_identify(identity):
-        cloud_data = get_cloud_account_from_mongo(identity)
+        cloud_data = CloudManager.get_cloud_account_from_mongo(identity)
         if cloud_data is None:
             return None
         if cloud_data['cloudProvider'] == "AWS":

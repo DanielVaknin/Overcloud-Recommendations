@@ -18,7 +18,7 @@ def main_route():
         return jsonify({"status": "error", "error": "Please provide the ID of the cloud account"}), 422
 
     try:
-        get_cloud_account_from_mongo(cloud_account_id)
+        CloudManager.get_cloud_account_from_mongo(cloud_account_id)
     except InvalidId as e:
         logger.exception(e)
         return jsonify({"status": "error", "error": "There is no cloud account with such ID"}), 404
@@ -40,7 +40,7 @@ def scan():
         if cloud_provider is None:
             return jsonify({"status": "error", "error": "Cloud Provider Not Found"}), 404
 
-        Thread(target=cloud_provider.recommend()).start()
+        Thread(target=cloud_provider.recommend).start()
         return jsonify({"status": "ok"})
     # TODO: Scan all cloud providers if didn't get any
     return jsonify({"status": "error", "error": "Please provide the ID of the cloud account"}), 404
