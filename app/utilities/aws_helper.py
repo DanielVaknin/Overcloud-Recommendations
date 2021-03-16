@@ -122,7 +122,8 @@ class AWSHelper:
                     }
 
                     # Get snapshot price
-                    price = self.get_price_for_resource('AmazonEC2', client['regionFullName'], [
+                    # Workaround: AWS pricing API is missing snapshot pricing in regions other then N. Virginia
+                    price = self.get_price_for_resource('AmazonEC2', 'US East (N. Virginia)', [
                         {'Type': 'TERM_MATCH', 'Field': 'productFamily', 'Value': 'Storage Snapshot'},
                         {'Type': 'TERM_MATCH', 'Field': 'usageType', 'Value': 'EBS:SnapshotUsage'},
                     ])
