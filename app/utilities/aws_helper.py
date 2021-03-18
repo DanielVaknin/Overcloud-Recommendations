@@ -8,6 +8,12 @@ import boto3
 class AWSHelper:
 
     def __init__(self, aws_access_key_id=None, aws_secret_access_key=None):
+        """
+        Constructor for the class. Will initialize the relevant AWS boto3 clients
+        :param aws_access_key_id: "access key" for the AWS account
+        :param aws_secret_access_key: "secret access key" for the AWS account
+        """
+
         self.access_key_id = aws_access_key_id
         self.secret_access_key = aws_secret_access_key
         base_region = 'us-east-1'
@@ -32,6 +38,13 @@ class AWSHelper:
         self.pricing_client = self.create_boto3_client('pricing', base_region)
 
     def create_boto3_client(self, service, region):
+        """
+        This will create a new AWS boto3 client based on the provided details
+        :param service: The AWS service to create client for (for example: "ec2")
+        :param region: The region to create the client in (for example: "us-east-1")
+        :return: The created AWS client
+        """
+
         return boto3.client(service,
                             aws_access_key_id=self.access_key_id,
                             aws_secret_access_key=self.secret_access_key,
@@ -43,7 +56,6 @@ class AWSHelper:
     def get_price_for_resource(self, service_code, region_full_name, filters):
         """
         This function checks the price of the specific service in AWS pricing API based on the provided filters
-
         :param service_code: The AWS service code (example: "AmazonEC2"
         :param region_full_name: Full name of AWS region (example: "US East (N. Virginia)")
         :param filters: List of additional filters for the query (example: [{'Type': 'TERM_MATCH', 'Field': 'productFamily', 'Value': 'storage'}]
@@ -72,6 +84,11 @@ class AWSHelper:
         return {'price': price, 'price_unit': price_unit}
 
     def get_unattached_volumes(self):
+        """
+        This function will search for all EBS volumes that are not attached to any EC2 instance
+        :return: List of all EBS volumes with their details
+        """
+
         unattached_volumes = []
 
         for client in self.ec2_clients:
@@ -106,6 +123,12 @@ class AWSHelper:
         return unattached_volumes
 
     def get_old_snapshots(self, days):
+        """
+        This function will search for EBS snapshots that are older then the provided number of days
+        :param days: Number of days (to search for snapshots older then this number)
+        :return: List of old snapshots with their details
+        """
+
         old_snapshots = []
         owner_id = self.get_account_user_id()
 
@@ -140,6 +163,11 @@ class AWSHelper:
         return old_snapshots
 
     def get_unassociated_eip(self):
+        """
+        This function will search for Elastic IPs that are not associated to any instance
+        :return: List of unassociated EIPs
+        """
+
         unassociated_eip = []
 
         for client in self.ec2_clients:
@@ -168,7 +196,14 @@ class AWSHelper:
 
         return unassociated_eip
 
-    def delete_snapshots(self, snapshots_id):
+    def delete_snapshots(self, snapshots_id, region):
+        """
+        This function will delete an EBS snapshot in the provided region based on its' ID
+        :param snapshots_id: ID of the snapshot to delete
+        :param region: Region where the snapshot is located
+        """
+
+        # TODO: Fix this function to support multiple regions
         for snapshot_id in snapshots_id:
             try:
                 self.ec2_initial_client.delete_snapshot(SnapshotId=snapshot_id)
@@ -178,9 +213,21 @@ class AWSHelper:
                     continue
 
     def get_regions(self):
+        """
+        This function will get a list of all AWS regions
+        :return: List of AWS regions
+        """
+
         return [region['RegionName'] for region in self.ec2_initial_client.describe_regions()['Regions']]
 
     def get_region_full_name(self, region):
+        """
+        This function will get the full name of a specified region (for example: "US East (N. Virginia)")
+        This is being used for AWS pricing API which requires the full name of the regions for the filters.
+        :param region: Short name of a region
+        :return: Full name of the region
+        """
+
         response = self.ssm_client.get_parameter(Name=f'/aws/service/global-infrastructure/regions/{region}/longName')
         region_name = response['Parameter']['Value']  # US West (N. California)
         return region_name

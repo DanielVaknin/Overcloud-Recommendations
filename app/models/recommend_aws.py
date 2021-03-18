@@ -7,6 +7,13 @@ logger = logging.getLogger(__name__)
 
 
 def get_total_price(data):
+    """
+    This function will go over all the resources in the recommendation and calculate
+    the total price for all recommendations (that can be saved)
+    :param data: a list of violating resources
+    :return: The total price of all resources that can be saved
+    """
+
     total_price = 0
     for item in data:
         if 'totalPrice' in item:
