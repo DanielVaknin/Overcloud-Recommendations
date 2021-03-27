@@ -27,7 +27,7 @@ class RecommendAws:
         self.account_id = str(account_id)
         self.aws = AWSHelper(aws_access_key_id=access_key, aws_secret_access_key=secret_key)
         self.owner_id = self.aws.get_account_user_id()
-        mongo_helper.delete_all(collection="recommendations")
+        mongo_helper.delete_all(collection="recommendations", query={"accountId": self.account_id})
 
     def recommend(self):
         self.scan_unattached_volumes()
