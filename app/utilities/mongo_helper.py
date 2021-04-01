@@ -16,5 +16,5 @@ class MongoHelper:
     def find_all(self, collection, query):
         return self.db[collection].find(query)
 
-    def delete_all(self, collection):
-        return self.db[collection].delete_many({})
+    def delete_all(self, collection, query):
+        return self.db[collection].delete_many(query)

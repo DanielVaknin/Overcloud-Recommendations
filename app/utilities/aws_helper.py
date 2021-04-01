@@ -122,6 +122,23 @@ class AWSHelper:
 
         return unattached_volumes
 
+    def delete_volume(self, volume_id, region):
+        """
+        This function will delete an EBS volume in the provided region based on its' ID
+        :param volume_id: ID of the volume to delete
+        :param region: Region where the volume is located
+        """
+
+        for ec2_client in self.ec2_clients:
+            if ec2_client['region'] == region:
+                client = ec2_client['client']
+                try:
+                    print(f'Volume with ID {volume_id} will be deleted')
+                    # client.delete_volume(VolumeId=volume_id)
+                except Exception as e:
+                    print(f'Failed to delete volume with ID {volume_id}')
+                break
+
     def get_old_snapshots(self, days):
         """
         This function will search for EBS snapshots that are older then the provided number of days
@@ -162,6 +179,23 @@ class AWSHelper:
 
         return old_snapshots
 
+    def delete_snapshot(self, snapshot_id, region):
+        """
+        This function will delete an EBS snapshot in the provided region based on its' ID
+        :param snapshot_id: ID of the snapshot to delete
+        :param region: Region where the snapshot is located
+        """
+
+        for ec2_client in self.ec2_clients:
+            if ec2_client['region'] == region:
+                client = ec2_client['client']
+                try:
+                    print(f'Snapshot with ID {snapshot_id} will be deleted')
+                    # client.delete_snapshot(SnapshotId=snapshot_id)
+                except Exception as e:
+                    print(f'Failed to delete snapshot with ID {snapshot_id}')
+                break
+
     def get_unassociated_eip(self):
         """
         This function will search for Elastic IPs that are not associated to any instance
@@ -179,7 +213,7 @@ class AWSHelper:
                         'id': address['AllocationId'],
                     }
 
-                    # Get snapshot price
+                    # Get Elastic IP price
                     price = self.get_price_for_resource('AmazonEC2', client['regionFullName'], [
                         {'Type': 'TERM_MATCH', 'Field': 'productFamily', 'Value': 'IP Address'},
                         {'Type': 'TERM_MATCH', 'Field': 'usageType', 'Value': 'ElasticIP:IdleAddress'},
@@ -196,21 +230,22 @@ class AWSHelper:
 
         return unassociated_eip
 
-    def delete_snapshots(self, snapshots_id, region):
+    def release_eip(self, allocation_id, region):
         """
-        This function will delete an EBS snapshot in the provided region based on its' ID
-        :param snapshots_id: ID of the snapshot to delete
-        :param region: Region where the snapshot is located
+        This function will release an Elastic IP in the provided region based on its' ID
+        :param allocation_id: Allocation ID of the Elastic IP to release
+        :param region: Region where the Elastic IP with the allocation ID is located
         """
 
-        # TODO: Fix this function to support multiple regions
-        for snapshot_id in snapshots_id:
-            try:
-                self.ec2_initial_client.delete_snapshot(SnapshotId=snapshot_id)
-            except Exception as e:
-                if 'InvalidSnapshot.InUse' in e:
-                    print(f"skipping this snapshot: {snapshots_id}")
-                    continue
+        for ec2_client in self.ec2_clients:
+            if ec2_client['region'] == region:
+                client = ec2_client['client']
+                try:
+                    print(f'Elastic IP with Allocation ID {allocation_id} will be released')
+                    # client.release_address(AllocationId=allocation_id)
+                except Exception as e:
+                    print(f'Failed to release Elastic IP with Allocation ID {allocation_id}')
+                break
 
     def get_regions(self):
         """
