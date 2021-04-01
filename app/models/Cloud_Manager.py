@@ -21,9 +21,9 @@ class CloudManager:
                             secret_key=cloud_data['secretKey'])
 
     @staticmethod
-    def get_recommendations_for_cloud_provider(cloud_account_id, recommendation_id=None):
+    def get_recommendations_for_cloud_provider(cloud_account_id, recommendation_type=None):
         query = {'accountId': cloud_account_id}
-        if recommendation_id is not None:
-            query.update({'_id': ObjectId(recommendation_id)})
+        if recommendation_type is not None:
+            query.update({'type': recommendation_type})
         result = mongo_helper.find_all(collection='recommendations', query=query)
         return list(result)

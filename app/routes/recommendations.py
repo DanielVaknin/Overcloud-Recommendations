@@ -1,3 +1,4 @@
+import json
 import logging
 from threading import Thread
 
@@ -14,7 +15,7 @@ logger = logging.getLogger()
 @recommendations.route("", methods=['GET'])
 def main_route():
     cloud_account_id = request.args.get('cloud_account', None)
-    recommendation_id = request.args.get('recommendation', None)
+    recommendation_type = request.args.get('recommendation_type', None)
 
     if cloud_account_id is None:
         return jsonify({"status": "error", "error": "Please provide the ID of the cloud account"}), 422
@@ -26,7 +27,7 @@ def main_route():
         return jsonify({"status": "error", "error": "There is no cloud account with such ID"}), 404
 
     try:
-        result = CloudManager.get_recommendations_for_cloud_provider(cloud_account_id, recommendation_id)
+        result = CloudManager.get_recommendations_for_cloud_provider(cloud_account_id, recommendation_type)
     except InvalidId as e:
         logger.exception(e)
         return jsonify({"status": "error", "error": "There is no recommendation with such ID"}), 404
