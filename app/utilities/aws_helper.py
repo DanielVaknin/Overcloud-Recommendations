@@ -213,7 +213,7 @@ class AWSHelper:
                         'id': address['AllocationId'],
                     }
 
-                    # Get snapshot price
+                    # Get Elastic IP price
                     price = self.get_price_for_resource('AmazonEC2', client['regionFullName'], [
                         {'Type': 'TERM_MATCH', 'Field': 'productFamily', 'Value': 'IP Address'},
                         {'Type': 'TERM_MATCH', 'Field': 'usageType', 'Value': 'ElasticIP:IdleAddress'},
@@ -229,6 +229,23 @@ class AWSHelper:
                     unassociated_eip.append(eip_data)
 
         return unassociated_eip
+
+    def release_eip(self, allocation_id, region):
+        """
+        This function will release an Elastic IP in the provided region based on its' ID
+        :param allocation_id: Allocation ID of the Elastic IP to release
+        :param region: Region where the Elastic IP with the allocation ID is located
+        """
+
+        for ec2_client in self.ec2_clients:
+            if ec2_client['region'] == region:
+                client = ec2_client['client']
+                try:
+                    print(f'Elastic IP with Allocation ID {allocation_id} will be released')
+                    # client.release_address(AllocationId=allocation_id)
+                except Exception as e:
+                    print(f'Failed to release Elastic IP with Allocation ID {allocation_id}')
+                break
 
     def get_regions(self):
         """
