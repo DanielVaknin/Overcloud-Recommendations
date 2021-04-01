@@ -28,7 +28,38 @@ This user should have the following IAM policies
 }
 ```
 
-## API Documentation
+# API Documentation
+
+## Scan the cloud account for recommendations
+
+This path will scan the cloud account for recommendations
+
+| Method | Path             |
+| :----- | :--------------- |
+| `POST` | `/recommendations/scan` |
+
+### Parameters
+
+- `cloud_account` `(string: required)` – The ID of the cloud account to scan
+
+### Sample Payload
+
+```json
+{
+    "cloud_account": "60526ffb3a611c4670f2a38a"
+}
+```
+
+### Sample Request
+
+```bash
+$ curl \
+    --request POST \
+    --data @payload.json \
+    http://localhost:5000/recommendations/scan
+```
+
+***TODO: The same for the rest of the APIs***
 
 | Method        | API           | Body          | Description   |
 | ------------- | ------------- | ------------- | ------------- |
