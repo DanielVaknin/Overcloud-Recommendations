@@ -30,7 +30,7 @@ This user should have the following IAM policies
 
 # API Documentation
 
-## Scan the cloud account for recommendations
+## Scan Recommendations
 
 This path will scan the cloud account for recommendations
 
@@ -40,7 +40,7 @@ This path will scan the cloud account for recommendations
 
 ### Parameters
 
-- `cloud_account` `(string: required)` – The ID of the cloud account to scan
+- `cloud_account` `(string: <required>)` – The ID of the cloud account to scan
 
 ### Sample Payload
 
@@ -59,12 +59,88 @@ $ curl \
     http://localhost:5000/recommendations/scan
 ```
 
-***TODO: The same for the rest of the APIs***
+## Read Recommendations
 
-| Method        | API           | Body          | Description   |
-| ------------- | ------------- | ------------- | ------------- |
-| POST | /recommendations/scan | { "cloud_account": "604d60e89b81ec473cee1716" }| Scan the cloud account for recommendations |
-| GET | /recommendations?cloud_account=\<id\> | N/A | Get recommendations for a specific cloud account |
-| GET | /recommendations?cloud_account=\<id\>&recommendation=\<id\> | N/A | Get a specific recommendation for a specific cloud account |
-| GET | /recommendations?cloud_account=\<id\>&recommendation=\<id\> | N/A | Get a specific recommendation for a specific cloud account |
-| DELETE | /recommendations?cloud_account=\<id\> | N/A | Delete all recommendations for a specific cloud account (TODO) |
+This endpoint retrieves the recommendations for a specific cloud account
+
+| Method | Path                                         |
+| :----- | :------------------------------------------- |
+| `GET`  | `/recommendations?cloud_account=:cloud-account-id&recommendation_type=recommendation-type` |
+
+### Parameters
+
+- `cloud-account-id` `(string: <required>)` – The ID of the cloud account
+- `recommendation-type` `(string: "")` - Specifies the recommendation type to retrieve. If not set all recommendations are returned
+
+### Sample Request
+
+```shell-session
+# All recommendations
+$ curl http://localhost:5000/recommendations?cloud_account=60526ffb3a611c4670f2a38a
+
+# Specific recommendation
+$ curl http://localhost:5000/recommendations?cloud_account=60526ffb3a611c4670f2a38a&recommendation_type=UnattachedVolumes
+```
+
+### Sample Response
+
+```json
+{
+    "recommendations": [
+        {
+            "_id": {
+                "$oid": "60660e9b4c92137be7140413"
+            },
+            "accountId": "60526ffb3a611c4670f2a38a",
+            "collectTime": "01/04/2021, 21:19:07",
+            "data": [
+                {
+                    "createTime": "17/03/2021",
+                    "id": "vol-0aa5d8bb9f8f210e3",
+                    "price": "0.1000000000",
+                    "priceUnit": "GB-Mo",
+                    "region": "us-east-1",
+                    "size": 1,
+                    "totalPrice": "0.1000",
+                    "type": "gp2"
+                }
+            ],
+            "name": "Unattached Volumes",
+            "totalPrice": "0.6",
+            "type": "UnattachedVolumes"
+        }
+    ],
+    "status": "ok"
+}
+```
+
+## Remediate Recommendations
+
+This path will remediate the provided recommendations
+
+| Method | Path             |
+| :----- | :--------------- |
+| `POST` | `/recommendations/remediate` |
+
+### Parameters
+
+- `cloud_account` `(string: <required>)` – The ID of the cloud account to scan
+- `recommendation_type` `(string: "")` – The type of the recommendation to remediate. If not provided, will remediate all
+
+### Sample Payload
+
+```json
+{
+    "cloud_account": "60526ffb3a611c4670f2a38a",
+    "recommendation_type": "UnassociatedEIP"
+}
+```
+
+### Sample Request
+
+```bash
+$ curl \
+    --request POST \
+    --data @payload.json \
+    http://localhost:5000/recommendations/remediate
+```
