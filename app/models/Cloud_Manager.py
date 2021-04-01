@@ -1,7 +1,6 @@
 from bson import ObjectId
 
 from app.models.CloudAws import CloudAws
-from app.models.recommend_aws import *
 from app.utilities import *
 
 
@@ -20,8 +19,6 @@ class CloudManager:
         if cloud_data['cloudProvider'] == "AWS":
             return CloudAws(account_id=cloud_data['_id'], access_key=cloud_data['accessKey'],
                             secret_key=cloud_data['secretKey'])
-            # return RecommendAws(account_id=cloud_data['_id'], access_key=cloud_data['accessKey'],
-            #                     secret_key=cloud_data['secretKey'])
 
     @staticmethod
     def get_recommendations_for_cloud_provider(cloud_account_id, recommendation_id=None):
