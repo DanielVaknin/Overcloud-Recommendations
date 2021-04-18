@@ -1,5 +1,6 @@
 flask-restful
 flask
+flask-cors
 json-logging
 Flask-RestPlus
 Flask-Migrate
