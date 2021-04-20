@@ -155,3 +155,36 @@ $ curl \
     --data @payload.json \
     http://localhost:5000/recommendations/remediate
 ```
+
+## Validate Cloud Account
+
+This path will validate the cloud account
+
+| Method | Path             |
+| :----- | :--------------- |
+| `POST` | `/cloud-accounts/validate` |
+
+### Parameters
+
+- `cloudProvider` `(string: <required>)` – The ID of the cloud account to scan
+- `accessKey` `(string: <required>)` – The access key of the AWS user
+- `secretKey` `(string: <required>)` – The secret access key of the AWS user
+
+### Sample Payload
+
+```json
+{
+  "cloudProvider": "AWS",
+  "accessKey": "XXXXX",
+  "secretKey": "XXXXX"
+}
+```
+
+### Sample Request
+
+```bash
+$ curl \
+    --request POST \
+    --data @payload.json \
+    http://localhost:5000/cloud-accounts/validate
+```
