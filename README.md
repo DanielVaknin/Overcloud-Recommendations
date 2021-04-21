@@ -29,6 +29,24 @@ user should have the following IAM policies
 }
 ```
 
+If you want the system to be able to remediate the recommendations as well, you'll need to add the following permissions
+to the user:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ec2:DeleteVolume",
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+```
+
 ## Start Service
 
 To start the recommendation service, run the following command:

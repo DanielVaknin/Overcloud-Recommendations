@@ -134,9 +134,9 @@ class AWSHelper:
                 client = ec2_client['client']
                 try:
                     print(f'Volume with ID {volume_id} will be deleted')
-                    # client.delete_volume(VolumeId=volume_id)
+                    client.delete_volume(VolumeId=volume_id)
                 except Exception as e:
-                    print(f'Failed to delete volume with ID {volume_id}')
+                    print(f'Failed to delete volume with ID {volume_id}. Error: {e.response["Error"]["Message"]}')
                 break
 
     def get_old_snapshots(self, days):
@@ -193,7 +193,7 @@ class AWSHelper:
                     print(f'Snapshot with ID {snapshot_id} will be deleted')
                     # client.delete_snapshot(SnapshotId=snapshot_id)
                 except Exception as e:
-                    print(f'Failed to delete snapshot with ID {snapshot_id}')
+                    print(f'Failed to delete snapshot with ID {snapshot_id}. Error: {e.response["Error"]["Message"]}')
                 break
 
     def get_unassociated_eip(self):
@@ -244,7 +244,7 @@ class AWSHelper:
                     print(f'Elastic IP with Allocation ID {allocation_id} will be released')
                     # client.release_address(AllocationId=allocation_id)
                 except Exception as e:
-                    print(f'Failed to release Elastic IP with Allocation ID {allocation_id}')
+                    print(f'Failed to release Elastic IP with Allocation ID {allocation_id}. Error: {e.response["Error"]["Message"]}')
                 break
 
     def get_regions(self):
