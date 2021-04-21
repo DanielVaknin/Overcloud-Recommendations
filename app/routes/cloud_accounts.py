@@ -18,4 +18,4 @@ def validate():
             AWSHelper(aws_access_key_id=access_key, aws_secret_access_key=secret_access_key)
             return jsonify({"status": "ok"})
         except ClientError as e:
-            return jsonify({"status": "error", "error": e.response['Error']['Message']})
+            return jsonify({"status": "error", "error": e.response['Error']['Message']}), 500
