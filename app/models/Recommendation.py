@@ -45,14 +45,13 @@ class UnattachedVolumes(Recommendation):
 
     def scan(self):
         data = self.helper.get_unattached_volumes()
-        if data:
-            mongo_helper.insert(collection="recommendations",
-                                document={"name": "Unattached Volumes",
-                                          "type": self.__class__.__name__,
-                                          "accountId": self.account_id,
-                                          "collectTime": datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S"),
-                                          "totalPrice": str(round(Recommendation.get_total_price(data), 4)),
-                                          "data": data})
+        mongo_helper.insert(collection="recommendations",
+                            document={"name": "Unattached Volumes",
+                                      "type": self.__class__.__name__,
+                                      "accountId": self.account_id,
+                                      "collectTime": datetime.datetime.now(),
+                                      "totalPrice": round(Recommendation.get_total_price(data), 4),
+                                      "data": data})
 
     def get(self):
         return mongo_helper.find(collection="recommendations", query={"accountId": self.account_id,
@@ -75,8 +74,8 @@ class OldSnapshots(Recommendation):
                             document={"name": "Old Snapshots",
                                       "type": self.__class__.__name__,
                                       "accountId": self.account_id,
-                                      "collectTime": datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S"),
-                                      "totalPrice": str(round(Recommendation.get_total_price(data), 4)),
+                                      "collectTime": datetime.datetime.now(),
+                                      "totalPrice": round(Recommendation.get_total_price(data), 4),
                                       "data": data})
 
     def get(self):
@@ -100,8 +99,8 @@ class UnassociatedEIP(Recommendation):
                             document={"name": "Unassociated EIPs",
                                       "type": self.__class__.__name__,
                                       "accountId": self.account_id,
-                                      "collectTime": datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S"),
-                                      "totalPrice": str(round(Recommendation.get_total_price(data), 4)),
+                                      "collectTime": datetime.datetime.now(),
+                                      "totalPrice": round(Recommendation.get_total_price(data), 4),
                                       "data": data})
 
     def get(self):
