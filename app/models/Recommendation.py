@@ -5,6 +5,7 @@ from app.utilities import mongo_helper
 
 
 class Recommendation:
+
     def __init__(self, helper, account_id):
         self.helper = helper
         self.account_id = account_id
@@ -21,6 +22,7 @@ class Recommendation:
     def remediate(self):
         pass
 
+    # TODO: Fix this function to better calculate the total price
     @staticmethod
     def get_total_price(data):
         """
@@ -43,13 +45,14 @@ class UnattachedVolumes(Recommendation):
 
     def scan(self):
         data = self.helper.get_unattached_volumes()
-        mongo_helper.insert(collection="recommendations", document={"name": "Unattached Volumes",
-                                                                    "type": self.__class__.__name__,
-                                                                    "accountId": self.account_id,
-                                                                    "collectTime": datetime.datetime.now().strftime(
-                                                                        "%d/%m/%Y, %H:%M:%S"),
-                                                                    "totalPrice": str(round(Recommendation.get_total_price(data), 4)),
-                                                                    "data": data})
+        if data:
+            mongo_helper.insert(collection="recommendations",
+                                document={"name": "Unattached Volumes",
+                                          "type": self.__class__.__name__,
+                                          "accountId": self.account_id,
+                                          "collectTime": datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S"),
+                                          "totalPrice": str(round(Recommendation.get_total_price(data), 4)),
+                                          "data": data})
 
     def get(self):
         return mongo_helper.find(collection="recommendations", query={"accountId": self.account_id,
@@ -68,13 +71,13 @@ class OldSnapshots(Recommendation):
 
     def scan(self):
         data = self.helper.get_old_snapshots(days=30)
-        mongo_helper.insert(collection="recommendations", document={"name": "Old Snapshots",
-                                                                    "type": self.__class__.__name__,
-                                                                    "accountId": self.account_id,
-                                                                    "collectTime": datetime.datetime.now().strftime(
-                                                                        "%d/%m/%Y, %H:%M:%S"),
-                                                                    "totalPrice": str(round(Recommendation.get_total_price(data), 4)),
-                                                                    "data": data})
+        mongo_helper.insert(collection="recommendations",
+                            document={"name": "Old Snapshots",
+                                      "type": self.__class__.__name__,
+                                      "accountId": self.account_id,
+                                      "collectTime": datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S"),
+                                      "totalPrice": str(round(Recommendation.get_total_price(data), 4)),
+                                      "data": data})
 
     def get(self):
         return mongo_helper.find(collection="recommendations", query={"accountId": self.account_id,
@@ -93,13 +96,13 @@ class UnassociatedEIP(Recommendation):
 
     def scan(self):
         data = self.helper.get_unassociated_eip()
-        mongo_helper.insert(collection="recommendations", document={"name": "Unassociated EIPs",
-                                                                    "type": self.__class__.__name__,
-                                                                    "accountId": self.account_id,
-                                                                    "collectTime": datetime.datetime.now().strftime(
-                                                                        "%d/%m/%Y, %H:%M:%S"),
-                                                                    "totalPrice": str(round(Recommendation.get_total_price(data), 4)),
-                                                                    "data": data})
+        mongo_helper.insert(collection="recommendations",
+                            document={"name": "Unassociated EIPs",
+                                      "type": self.__class__.__name__,
+                                      "accountId": self.account_id,
+                                      "collectTime": datetime.datetime.now().strftime("%d/%m/%Y, %H:%M:%S"),
+                                      "totalPrice": str(round(Recommendation.get_total_price(data), 4)),
+                                      "data": data})
 
     def get(self):
         return mongo_helper.find(collection="recommendations", query={"accountId": self.account_id,

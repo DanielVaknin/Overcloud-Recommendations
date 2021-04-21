@@ -176,7 +176,9 @@ $ curl \
 
 ## Validate Cloud Account
 
-This path will validate the cloud account
+This path will validate the cloud account.
+
+> Note: Currently, only AWS is supported.
 
 | Method | Path             |
 | :----- | :--------------- |
@@ -185,16 +187,18 @@ This path will validate the cloud account
 ### Parameters
 
 - `cloudProvider` `(string: <required>)` – The ID of the cloud account to scan
-- `accessKey` `(string: <required>)` – The access key of the AWS user
-- `secretKey` `(string: <required>)` – The secret access key of the AWS user
+- `credentials.accessKey` `(string: <required>)` – The access key of the AWS user
+- `credentials.secretKey` `(string: <required>)` – The secret access key of the AWS user
 
 ### Sample Payload
 
 ```json
 {
-  "cloudProvider": "AWS",
-  "accessKey": "XXXXX",
-  "secretKey": "XXXXX"
+    "cloudProvider": "AWS",
+    "credentials": {
+        "accessKey": "XXXXX",
+        "secretKey": "XXXXX"
+    }
 }
 ```
 
