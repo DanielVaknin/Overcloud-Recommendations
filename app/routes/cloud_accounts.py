@@ -1,5 +1,9 @@
 import logging
+
+from bson.errors import InvalidId
 from flask import request, jsonify, Blueprint
+
+from app.models.Cloud_Manager import CloudManager
 from app.utilities.aws_helper import *
 from botocore.exceptions import ClientError
 
@@ -28,3 +32,26 @@ def validate():
             return jsonify({"status": "ok"})
         except ClientError as e:
             return jsonify({"status": "error", "error": e.response['Error']['Message']}), 500
+
+
+@cloud_accounts.route("/billing", methods=['GET'])
+def billing_date():
+    cloud_account_id = request.args.get('cloud_account', None)
+
+    if cloud_account_id is None:
+        return jsonify({"status": "error", "error": "Please provide the ID of the cloud account"}), 422
+
+    try:
+        cloud_account = CloudManager.get_cloud_account_from_mongo(cloud_account_id)
+        access_key = cloud_account['accessKey']
+        secret_access_key = cloud_account['secretKey']
+
+        current_bill = AWSHelper(aws_access_key_id=access_key,
+                                 aws_secret_access_key=secret_access_key).get_current_bill()
+        return jsonify({"status": "ok", "data": {
+            "currentBill": current_bill
+        }})
+
+    except InvalidId as e:
+        logger.exception(e)
+        return jsonify({"status": "error", "error": "There is no recommendation with such ID"}), 404

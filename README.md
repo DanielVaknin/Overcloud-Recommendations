@@ -19,7 +19,8 @@ user should have the following IAM policies
       "Action": [
         "pricing:DescribeServices",
         "pricing:GetAttributeValues",
-        "pricing:GetProducts"
+        "pricing:GetProducts",
+        "ce:GetCostAndUsage"
       ],
       "Resource": [
         "*"

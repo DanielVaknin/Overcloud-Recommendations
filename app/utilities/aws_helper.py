@@ -34,8 +34,8 @@ class AWSHelper:
             })
 
         self.sts_client = self.create_boto3_client('sts', base_region)
-
         self.pricing_client = self.create_boto3_client('pricing', base_region)
+        self.cost_explorer_client = self.create_boto3_client('ce', base_region)
 
     def create_boto3_client(self, service, region):
         """
@@ -244,7 +244,8 @@ class AWSHelper:
                     print(f'Elastic IP with Allocation ID {allocation_id} will be released')
                     # client.release_address(AllocationId=allocation_id)
                 except Exception as e:
-                    print(f'Failed to release Elastic IP with Allocation ID {allocation_id}. Error: {e.response["Error"]["Message"]}')
+                    print(
+                        f'Failed to release Elastic IP with Allocation ID {allocation_id}. Error: {e.response["Error"]["Message"]}')
                 break
 
     def get_regions(self):
@@ -266,3 +267,17 @@ class AWSHelper:
         response = self.ssm_client.get_parameter(Name=f'/aws/service/global-infrastructure/regions/{region}/longName')
         region_name = response['Parameter']['Value']  # US West (N. California)
         return region_name
+
+    def get_current_bill(self):
+        response = self.cost_explorer_client.get_cost_and_usage(
+            TimePeriod={
+                'Start': datetime.datetime.today().replace(day=1).strftime("%Y-%m-%d"),  # Beginning of the month
+                'End': datetime.datetime.now().strftime("%Y-%m-%d")
+            },
+            Granularity='MONTHLY',
+            Metrics=[
+                'AmortizedCost',
+            ]
+        )
+
+        return response['ResultsByTime'][0]['Total']['AmortizedCost']['Amount']  # Total amount
