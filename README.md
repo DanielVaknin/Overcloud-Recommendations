@@ -20,7 +20,8 @@ user should have the following IAM policies
         "pricing:DescribeServices",
         "pricing:GetAttributeValues",
         "pricing:GetProducts",
-        "ce:GetCostAndUsage"
+        "ce:GetCostAndUsage",
+        "ce:GetRightsizingRecommendation"
       ],
       "Resource": [
         "*"

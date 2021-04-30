@@ -14,7 +14,7 @@ class CloudAws:
     def __init__(self, account_id, access_key, secret_key):
         self.account_id = str(account_id)
         self.aws = AWSHelper(aws_access_key_id=access_key, aws_secret_access_key=secret_key)
-        self.owner_id = self.aws.get_account_user_id()
+        self.owner_id = self.aws.get_account_id()
 
     def validateAccount(self):
         try:

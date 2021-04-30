@@ -24,6 +24,8 @@ class AWSHelper:
         # This is an initial client used just to get the list of all regions
         self.ec2_initial_client = self.create_boto3_client('ec2', base_region)
 
+        self.regions_map = self.map_regions_id_to_name()
+
         # Create a map of all regions and their respective EC2 client (like "client factory")
         self.ec2_clients = []
         for region in self.get_regions():
@@ -50,7 +52,12 @@ class AWSHelper:
                             aws_secret_access_key=self.secret_access_key,
                             region_name=region)
 
-    def get_account_user_id(self):
+    def get_account_id(self):
+        """
+        This function will get the AWS account ID
+        :return: AWS account ID
+        """
+
         return self.sts_client.get_caller_identity().get('Account')
 
     def get_price_for_resource(self, service_code, region_full_name, filters):
@@ -147,7 +154,7 @@ class AWSHelper:
         """
 
         old_snapshots = []
-        owner_id = self.get_account_user_id()
+        owner_id = self.get_account_id()
 
         for client in self.ec2_clients:
             all_snapshots = client['client'].describe_snapshots(OwnerIds=[owner_id])
@@ -248,6 +255,103 @@ class AWSHelper:
                         f'Failed to release Elastic IP with Allocation ID {allocation_id}. Error: {e.response["Error"]["Message"]}')
                 break
 
+    def get_rightsizing_recommendations(self):
+        """
+        This function will get all instance rightsizing recommendations from the AWS account
+        :return: List of rightsizing recommendations
+        """
+
+        # TODO: Add filter for instance ID as this function will also get instances that might not exist anymore so
+        #  we can maybe first get all instances and then filter only those IDs
+        response = self.cost_explorer_client.get_rightsizing_recommendation(
+            # Filter={
+            #     'Dimensions': {
+            #         'Key': 'REGION',
+            #         'Values': [
+            #             'us-east-1',
+            #         ],
+            #     },
+            # },
+            Configuration={
+                'RecommendationTarget': 'CROSS_INSTANCE_FAMILY',
+                'BenefitsConsidered': True
+            },
+            Service='AmazonEC2',
+        )
+
+        recommendations = []
+
+        for rec in response['RightsizingRecommendations']:
+            currentInstance = rec['CurrentInstance']
+            rec_instance_details = rec['ModifyRecommendationDetail']['TargetInstances'][0]
+
+            recommendation = {
+                'instanceId': currentInstance['ResourceId'],
+                'currentInstanceType': currentInstance['ResourceDetails']['EC2ResourceDetails']['InstanceType'],
+                'currentMonthlyCost': currentInstance['MonthlyCost'],
+                'recInstanceType': rec_instance_details['ResourceDetails']['EC2ResourceDetails']['InstanceType'],
+                'estimatedMonthlyCost': rec_instance_details['EstimatedMonthlyCost']
+            }
+
+            # Get region id
+            current_region = currentInstance['ResourceDetails']['EC2ResourceDetails']['Region']
+
+            # Workaround for Europe regions as their full name is Europe but appears here as EU
+            if current_region.startswith('EU'):
+                current_region = current_region.replace('EU', 'Europe')
+
+            for key, value in self.regions_map.items():
+                if value == current_region:
+                    recommendation['region'] = key
+                    break
+
+            # Get createdBy tag
+            for tag in currentInstance['Tags']:
+                if tag['Key'] == 'aws:createdBy':
+                    recommendation['createdBy'] = tag['Values'][0]
+
+            recommendations.append(recommendation)
+
+        return recommendations
+
+    def modify_instance_type(self, region, instance_id, new_instance_type):
+        """
+        This function will modify the instance type of a given instance
+        :param region: The region of the instance
+        :param instance_id: The ID of the instance
+        :param new_instance_type: The new instance type to modify to
+        """
+
+        for ec2_client in self.ec2_clients:
+            if ec2_client['region'] == region:
+                client = ec2_client['client']
+                try:
+                    # Get instance state
+                    instance_status_response = client.describe_instance_status(InstanceIds=[instance_id])
+                    instance_state = instance_status_response['InstanceStatuses'][0]['InstanceState']['Name']
+                    print(f'Current instance state: {instance_state}')
+
+                    # Stop the instance
+                    if instance_state == 'running':
+                        print(f'Stopping instance with ID: {instance_id}')
+                        # client.stop_instances(InstanceIds=[instance_id])
+                        # waiter = client.get_waiter('instance_stopped')
+                        # waiter.wait(InstanceIds=[instance_id])
+
+                    # Change the instance type
+                    print(f'Changing instance type to: {new_instance_type}')
+                    # client.modify_instance_attribute(InstanceId=instance_id, Attribute='instanceType',
+                    #                                  Value=new_instance_type)
+
+                    # Start the instance
+                    if instance_state == 'running':
+                        print(f'Starting instance with ID: {instance_id}')
+                        # client.start_instances(InstanceIds=[instance_id])
+                except Exception as e:
+                    print(
+                        f'Failed to modify instance type of instance with ID {instance_id}. Error: {e.response["Error"]["Message"]}')
+                break
+
     def get_regions(self):
         """
         This function will get a list of all AWS regions
@@ -265,8 +369,16 @@ class AWSHelper:
         """
 
         response = self.ssm_client.get_parameter(Name=f'/aws/service/global-infrastructure/regions/{region}/longName')
-        region_name = response['Parameter']['Value']  # US West (N. California)
+        region_name = response['Parameter']['Value']  # Example: US West (N. California)
         return region_name
+
+    def map_regions_id_to_name(self):
+        regions = {}
+
+        for region in self.get_regions():
+            regions[region] = self.get_region_full_name(region)
+
+        return regions
 
     def get_current_bill(self):
         response = self.cost_explorer_client.get_cost_and_usage(
