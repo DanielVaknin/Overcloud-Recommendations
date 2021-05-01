@@ -1,0 +1,4 @@
+from app.models.RecommendationsAWS.InstanceType import InstanceType
+from app.models.RecommendationsAWS.UnassociatedEIP import UnassociatedEIP
+from app.models.RecommendationsAWS.OldSnapshots import OldSnapshots
+from app.models.RecommendationsAWS.UnattachedVolumes import UnattachedVolumes

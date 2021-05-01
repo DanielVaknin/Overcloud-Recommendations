@@ -38,13 +38,12 @@ def main_route():
 @recommendations.route("/scan", methods=['POST'])
 def scan():
     cloud_account_id = request.get_json().get('cloud_account', None)
-
+    recommendation_type = request.get_json().get('recommendation_type', None)
     if cloud_account_id is not None:
         cloud_provider = CloudManager.cloud_provider_identify(identity=cloud_account_id)
         if cloud_provider is None:
             return jsonify({"status": "error", "error": "Cloud Provider Not Found"}), 404
-
-        Thread(target=cloud_provider.scanRecommendations).start()
+        Thread(target=cloud_provider.scanRecommendations, kwargs={"recommendation_type": recommendation_type}).start()
         return jsonify({"status": "ok"})
 
     return jsonify({"status": "error", "error": "Please provide the ID of the cloud account"}), 404
