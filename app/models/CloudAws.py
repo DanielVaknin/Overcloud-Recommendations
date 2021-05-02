@@ -1,5 +1,4 @@
 import logging
-import sys
 
 from app.models.Recommendation import Recommendation
 from app.utilities import mongo_helper
@@ -47,11 +46,20 @@ class CloudAws:
                 rec(helper=self.aws, account_id=self.account_id).scan()
 
     def getRecommendations(self, recommendation_type=None):
+        recommendations = []
+
         if recommendation_type is not None:
-            getattr(sys.modules[__name__], recommendation_type).get()
+            recommendation_class, msg = self.get_recommendation_class_by_name(recommendation_type)
+            if recommendation_class is not None:
+                logger.info(msg)
+                recommendations.append(recommendation_class(helper=self.aws, account_id=self.account_id).get())
+            else:
+                logger.exception(msg)
         else:
             for rec in Recommendation.__subclasses__():
-                rec(helper=self.aws, account_id=self.account_id).get()
+                recommendations.append(rec(helper=self.aws, account_id=self.account_id).get())
+
+        return recommendations
 
     def remediateRecommendations(self, recommendation_type=None):
         if recommendation_type is not None:

@@ -1,5 +1,3 @@
-import logging
-
 from bson.errors import InvalidId
 from flask import request, jsonify, Blueprint
 
@@ -8,7 +6,6 @@ from app.utilities.aws_helper import *
 from botocore.exceptions import ClientError
 
 cloud_accounts = Blueprint('cloud-accounts', __name__)
-logger = logging.getLogger()
 
 
 @cloud_accounts.route("/validate", methods=['POST'])
