@@ -14,8 +14,15 @@ class InstanceType(Recommendation):
                                       "type": self.__class__.__name__,
                                       "accountId": self.account_id,
                                       "collectTime": datetime.datetime.now(),
-                                      # "totalPrice": round(Recommendation.get_total_price(data), 4),
+                                      "totalPrice": self.calculate_total_savings(data),
                                       "data": data})
+
+    def calculate_total_savings(self, data):
+        total_savings = 0
+        for rec in data:
+            total_savings += rec['currentMonthlyCost'] - rec['estimatedMonthlyCost']
+
+        return total_savings
 
     def get(self):
         return mongo_helper.find(collection="recommendations", query={"accountId": self.account_id,

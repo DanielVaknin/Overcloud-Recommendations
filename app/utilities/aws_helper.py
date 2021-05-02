@@ -288,9 +288,9 @@ class AWSHelper:
             recommendation = {
                 'instanceId': currentInstance['ResourceId'],
                 'currentInstanceType': currentInstance['ResourceDetails']['EC2ResourceDetails']['InstanceType'],
-                'currentMonthlyCost': currentInstance['MonthlyCost'],
+                'currentMonthlyCost': float(currentInstance['MonthlyCost']),
                 'recInstanceType': rec_instance_details['ResourceDetails']['EC2ResourceDetails']['InstanceType'],
-                'estimatedMonthlyCost': rec_instance_details['EstimatedMonthlyCost']
+                'estimatedMonthlyCost': float(rec_instance_details['EstimatedMonthlyCost'])
             }
 
             # Get region id
