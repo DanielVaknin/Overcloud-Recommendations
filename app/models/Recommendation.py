@@ -19,7 +19,6 @@ class Recommendation:
     def remediate(self):
         pass
 
-    # TODO: Fix this function to better calculate the total price
     @staticmethod
     def get_total_price(data):
         """
@@ -32,7 +31,7 @@ class Recommendation:
         total_price = 0
         for item in data:
             if 'totalPrice' in item:
-                total_price += float(item['totalPrice'].strip(' "'))
+                total_price += item['totalPrice']
         return total_price
 
 

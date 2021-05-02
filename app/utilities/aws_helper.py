@@ -85,10 +85,10 @@ class AWSHelper:
             priceDimensions = list(parse1['priceDimensions'])
             price = parse1['priceDimensions'][priceDimensions[len(priceDimensions) - 1]]['pricePerUnit']['USD']
             price_unit = parse1['priceDimensions'][priceDimensions[len(priceDimensions) - 1]]['unit']
+
+            return {'price': round(float(price), 4), 'price_unit': price_unit}
         except Exception as e:
             return None
-
-        return {'price': price, 'price_unit': price_unit}
 
     def get_unattached_volumes(self):
         """
@@ -122,7 +122,7 @@ class AWSHelper:
                         volume_data.update({
                             'price': price['price'],
                             'priceUnit': price['price_unit'],
-                            'totalPrice': str(round(Decimal(price['price'].strip(' "')) * volume['Size'], 4)),
+                            'totalPrice': price['price'] * volume['Size'],
                         })
 
                     unattached_volumes.append(volume_data)
@@ -179,7 +179,7 @@ class AWSHelper:
                         snapshot_data.update({
                             'price': price['price'],
                             'priceUnit': price['price_unit'],
-                            'totalPrice': str(round(Decimal(price['price'].strip(' "')) * snapshot['VolumeSize'], 4)),
+                            'totalPrice': price['price'] * snapshot['VolumeSize'],
                         })
 
                     old_snapshots.append(snapshot_data)
@@ -230,7 +230,7 @@ class AWSHelper:
                         eip_data.update({
                             'price': price['price'],
                             'priceUnit': price['price_unit'],
-                            'totalPrice': str(round(Decimal(price['price'].strip(' "')), 4)),
+                            'totalPrice': round(price['price'] * 24 * 30, 4),
                         })
 
                     unassociated_eip.append(eip_data)
@@ -288,9 +288,9 @@ class AWSHelper:
             recommendation = {
                 'instanceId': currentInstance['ResourceId'],
                 'currentInstanceType': currentInstance['ResourceDetails']['EC2ResourceDetails']['InstanceType'],
-                'currentMonthlyCost': float(currentInstance['MonthlyCost']),
+                'currentMonthlyCost': round(float(currentInstance['MonthlyCost']), 4),
                 'recInstanceType': rec_instance_details['ResourceDetails']['EC2ResourceDetails']['InstanceType'],
-                'estimatedMonthlyCost': float(rec_instance_details['EstimatedMonthlyCost'])
+                'estimatedMonthlyCost': round(float(rec_instance_details['EstimatedMonthlyCost']), 4)
             }
 
             # Get region id

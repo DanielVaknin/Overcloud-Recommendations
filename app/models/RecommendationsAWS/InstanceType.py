@@ -14,7 +14,7 @@ class InstanceType(Recommendation):
                                       "type": self.__class__.__name__,
                                       "accountId": self.account_id,
                                       "collectTime": datetime.datetime.now(),
-                                      "totalPrice": self.calculate_total_savings(data),
+                                      "totalPrice": round(self.calculate_total_savings(data), 4),
                                       "data": data})
 
     def calculate_total_savings(self, data):
