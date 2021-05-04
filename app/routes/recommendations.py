@@ -1,9 +1,10 @@
 import json
 from threading import Thread
 from bson import json_util
-from app.models.Cloud_Manager import *
-from flask import request, jsonify, Blueprint
 
+from app.scheduler import scheduler
+from app.models import cloud_manager
+from flask import request, jsonify, Blueprint
 recommendations = Blueprint('recommendations', __name__)
 
 
@@ -13,7 +14,7 @@ def main_route():
     recommendation_type = request.args.get('recommendation_type', None)
 
     if cloud_account_id is not None:
-        cloud_provider = CloudManager.cloud_provider_identify(identity=cloud_account_id)
+        cloud_provider = cloud_manager.cloud_provider_identify(identity=cloud_account_id)
         if cloud_provider is None:
             return jsonify({"status": "error", "error": "Cloud Provider Not Found"}), 404
 
@@ -28,7 +29,7 @@ def scan():
     cloud_account_id = request.get_json().get('cloud_account', None)
     recommendation_type = request.get_json().get('recommendation_type', None)
     if cloud_account_id is not None:
-        cloud_provider = CloudManager.cloud_provider_identify(identity=cloud_account_id)
+        cloud_provider = cloud_manager.cloud_provider_identify(identity=cloud_account_id)
         if cloud_provider is None:
             return jsonify({"status": "error", "error": "Cloud Provider Not Found"}), 404
         Thread(target=cloud_provider.scanRecommendations, kwargs={"recommendation_type": recommendation_type}).start()
@@ -43,7 +44,7 @@ def remediate():
     recommendation_type = request.get_json().get('recommendation_type', None)
 
     if cloud_account_id is not None:
-        cloud_provider = CloudManager.cloud_provider_identify(identity=cloud_account_id)
+        cloud_provider = cloud_manager.cloud_provider_identify(identity=cloud_account_id)
         if cloud_provider is None:
             return jsonify({"status": "error", "error": "Cloud Provider Not Found"}), 404
 
@@ -51,3 +52,18 @@ def remediate():
         return jsonify({"status": "ok"})
 
     return jsonify({"status": "error", "error": "Please provide the ID of the cloud account"}), 404
+
+
+@recommendations.route("/schedule-scan", methods=['POST'])
+def schedule_scan():
+    cloud_account_id = request.get_json().get('cloud_account', None)
+    scan_interval = request.get_json().get('scan_interval', None)
+    if cloud_account_id and scan_interval:
+        cloud_provider = cloud_manager.cloud_provider_identify(identity=cloud_account_id)
+        if cloud_provider is None:
+            return jsonify({"status": "error", "error": "Cloud Provider Not Found"}), 404
+        scheduler.add_job(func=cloud_provider.scanRecommendations, trigger="cron",
+                          id=f"{cloud_account_id}", minute=5, jobstore='mongo')
+        return jsonify({"status": "ok"})
+    return jsonify({"status": "error", "error": "Please provide the ID of the cloud account"}), 404
+
