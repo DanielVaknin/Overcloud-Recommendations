@@ -62,8 +62,8 @@ def schedule_scan():
         cloud_provider = cloud_manager.cloud_provider_identify(identity=cloud_account_id)
         if cloud_provider is None:
             return jsonify({"status": "error", "error": "Cloud Provider Not Found"}), 404
-        scheduler.add_job(func=cloud_provider.scanRecommendations, trigger="cron",
-                          id=f"{cloud_account_id}", minute=5, jobstore='mongo')
+        scheduler.add_job(func=cloud_provider.scanRecommendations, trigger="interval",
+                          id=f"{cloud_account_id}", hours=scan_interval, jobstore='mongo', misfire_grace_time=3600)
         return jsonify({"status": "ok"})
     return jsonify({"status": "error", "error": "Please provide the ID of the cloud account"}), 404
 

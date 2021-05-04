@@ -31,6 +31,7 @@ class CloudAws:
         return None, msg
 
     def scanRecommendations(self, recommendation_type=None):
+        print("here")
         if recommendation_type is not None:
             mongo_helper.delete_all(collection="recommendations", query={"accountId": self.account_id,
                                                                          "type": recommendation_type})

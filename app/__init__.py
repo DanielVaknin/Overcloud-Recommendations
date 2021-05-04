@@ -14,9 +14,6 @@ class Config:
     client = MongoClient("mongodb+srv://admin:HMQrrUjrqpnYNJ4R@cluster0.0d9xj.mongodb.net")
 
     SCHEDULER_JOBSTORES = {"mongo": MongoDBJobStore(client=client, database="OverCloud")}
-    SCHEDULER_EXECUTORS = {"default": {"type": "threadpool", "max_workers": 20}}
-
-    SCHEDULER_JOB_DEFAULTS = {"coalesce": False, "max_instances": 3}
     SCHEDULER_API_ENABLED = True
 
 

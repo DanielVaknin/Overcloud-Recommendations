@@ -16,13 +16,13 @@ class AWSHelper:
 
         self.access_key_id = aws_access_key_id
         self.secret_access_key = aws_secret_access_key
-        base_region = 'us-east-1'
+        self.base_region = 'us-east-1'
 
         # This client is currently being used only to get the full name of all regions
-        self.ssm_client = self.create_boto3_client('ssm', base_region)
+        self.ssm_client = self.create_boto3_client('ssm', self.base_region)
 
         # This is an initial client used just to get the list of all regions
-        self.ec2_initial_client = self.create_boto3_client('ec2', base_region)
+        self.ec2_initial_client = self.create_boto3_client('ec2', self.base_region)
 
         self.regions_map = self.map_regions_id_to_name()
 
@@ -35,9 +35,9 @@ class AWSHelper:
                 'client': self.create_boto3_client('ec2', region),
             })
 
-        self.sts_client = self.create_boto3_client('sts', base_region)
-        self.pricing_client = self.create_boto3_client('pricing', base_region)
-        self.cost_explorer_client = self.create_boto3_client('ce', base_region)
+        self.sts_client = self.create_boto3_client('sts', self.base_region)
+        self.pricing_client = self.create_boto3_client('pricing', self.base_region)
+        self.cost_explorer_client = self.create_boto3_client('ce', self.base_region)
 
     def create_boto3_client(self, service, region):
         """
@@ -393,3 +393,34 @@ class AWSHelper:
         )
 
         return response['ResultsByTime'][0]['Total']['AmortizedCost']['Amount']  # Total amount
+
+    # will be called on pickling
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        del state['ssm_client']  # remove the unpicklable ssl_context
+        del state['ec2_initial_client']
+        del state['ec2_clients']
+        del state['sts_client']
+        del state['pricing_client']
+        del state['cost_explorer_client']
+        return state
+
+    # will be called on unpickling
+    def __setstate__(self, state):
+        print("here")
+        self.__dict__.update(state)
+        self.ssm_client = self.create_boto3_client('ssm', self.base_region)  # recreate the ssl_context
+        self.ec2_initial_client = self.create_boto3_client('ec2', self.base_region)
+
+        # Create a map of all regions and their respective EC2 client (like "client factory")
+        self.ec2_clients = []
+        for region in self.get_regions():
+            self.ec2_clients.append({
+                'region': region,
+                'regionFullName': self.get_region_full_name(region),
+                'client': self.create_boto3_client('ec2', region),
+            })
+
+        self.sts_client = self.create_boto3_client('sts', self.base_region)
+        self.pricing_client = self.create_boto3_client('pricing', self.base_region)
+        self.cost_explorer_client = self.create_boto3_client('ce', self.base_region)
