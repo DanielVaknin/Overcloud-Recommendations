@@ -49,6 +49,12 @@ to the user:
 }
 ```
 
+- Install the required dependencies:
+
+```bash
+pip install -r app\requirements.txt
+```
+
 ## Start Service
 
 To start the recommendation service, run the following command:
