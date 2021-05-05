@@ -1,11 +1,29 @@
 import datetime
 import json
-from decimal import Decimal
-
 import boto3
 
 
 class AWSHelper:
+    BASE_REGION = 'us-east-1'
+    REGIONS_MAP = {
+        'us-east-1': 'US East (N. Virginia)',
+        'us-east-2': 'US East (Ohio)',
+        'us-west-1': 'US West (N. California)',
+        'us-west-2': 'US West (Oregon)',
+        'eu-north-1': 'Europe (Stockholm)',
+        'eu-west-1': 'Europe (Ireland)',
+        'eu-west-2': 'Europe (London)',
+        'eu-west-3': 'Europe (Paris)',
+        'eu-central-1': 'Europe (Frankfurt)',
+        'ap-northeast-3': 'Asia Pacific (Osaka)',
+        'ap-northeast-2': 'Asia Pacific (Seoul)',
+        'ap-northeast-1': 'Asia Pacific (Tokyo)',
+        'ap-south-1': 'Asia Pacific (Mumbai)',
+        'ap-southeast-1': 'Asia Pacific (Singapore)',
+        'ap-southeast-2': 'Asia Pacific (Sydney)',
+        'sa-east-1': 'South America (Sao Paulo)',
+        'ca-central-1': 'Canada (Central)',
+    }
 
     def __init__(self, aws_access_key_id=None, aws_secret_access_key=None):
         """
@@ -16,28 +34,28 @@ class AWSHelper:
 
         self.access_key_id = aws_access_key_id
         self.secret_access_key = aws_secret_access_key
-        self.base_region = 'us-east-1'
 
         # This client is currently being used only to get the full name of all regions
-        self.ssm_client = self.create_boto3_client('ssm', self.base_region)
+        self.ssm_client = self.create_boto3_client('ssm', self.BASE_REGION)
 
         # This is an initial client used just to get the list of all regions
-        self.ec2_initial_client = self.create_boto3_client('ec2', self.base_region)
+        self.ec2_initial_client = self.create_boto3_client('ec2', self.BASE_REGION)
 
-        self.regions_map = self.map_regions_id_to_name()
+        # Not used anymore as we hardcode the regions to save time
+        # self.regions_map = self.map_regions_id_to_name()
 
         # Create a map of all regions and their respective EC2 client (like "client factory")
         self.ec2_clients = []
         for region in self.get_regions():
             self.ec2_clients.append({
                 'region': region,
-                'regionFullName': self.get_region_full_name(region),
+                'regionFullName': self.REGIONS_MAP[region],
                 'client': self.create_boto3_client('ec2', region),
             })
 
-        self.sts_client = self.create_boto3_client('sts', self.base_region)
-        self.pricing_client = self.create_boto3_client('pricing', self.base_region)
-        self.cost_explorer_client = self.create_boto3_client('ce', self.base_region)
+        self.sts_client = self.create_boto3_client('sts', self.BASE_REGION)
+        self.pricing_client = self.create_boto3_client('pricing', self.BASE_REGION)
+        self.cost_explorer_client = self.create_boto3_client('ce', self.BASE_REGION)
 
     def create_boto3_client(self, service, region):
         """
@@ -300,7 +318,7 @@ class AWSHelper:
             if current_region.startswith('EU'):
                 current_region = current_region.replace('EU', 'Europe')
 
-            for key, value in self.regions_map.items():
+            for key, value in self.REGIONS_MAP.items():
                 if value == current_region:
                     recommendation['region'] = key
                     break
@@ -360,6 +378,7 @@ class AWSHelper:
 
         return [region['RegionName'] for region in self.ec2_initial_client.describe_regions()['Regions']]
 
+    # Not used anymore as we hardcode the regions to save time
     def get_region_full_name(self, region):
         """
         This function will get the full name of a specified region (for example: "US East (N. Virginia)")
@@ -372,6 +391,7 @@ class AWSHelper:
         region_name = response['Parameter']['Value']  # Example: US West (N. California)
         return region_name
 
+    # Not used anymore as we hardcode the regions to save time
     def map_regions_id_to_name(self):
         regions = {}
 
@@ -407,20 +427,19 @@ class AWSHelper:
 
     # will be called on unpickling
     def __setstate__(self, state):
-        print("here")
         self.__dict__.update(state)
-        self.ssm_client = self.create_boto3_client('ssm', self.base_region)  # recreate the ssl_context
-        self.ec2_initial_client = self.create_boto3_client('ec2', self.base_region)
+        self.ssm_client = self.create_boto3_client('ssm', self.BASE_REGION)  # recreate the ssl_context
+        self.ec2_initial_client = self.create_boto3_client('ec2', self.BASE_REGION)
 
         # Create a map of all regions and their respective EC2 client (like "client factory")
         self.ec2_clients = []
         for region in self.get_regions():
             self.ec2_clients.append({
                 'region': region,
-                'regionFullName': self.get_region_full_name(region),
+                'regionFullName': self.REGIONS_MAP[region],
                 'client': self.create_boto3_client('ec2', region),
             })
 
-        self.sts_client = self.create_boto3_client('sts', self.base_region)
-        self.pricing_client = self.create_boto3_client('pricing', self.base_region)
-        self.cost_explorer_client = self.create_boto3_client('ce', self.base_region)
+        self.sts_client = self.create_boto3_client('sts', self.BASE_REGION)
+        self.pricing_client = self.create_boto3_client('pricing', self.BASE_REGION)
+        self.cost_explorer_client = self.create_boto3_client('ce', self.BASE_REGION)
