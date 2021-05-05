@@ -50,5 +50,4 @@ def billing_date():
         }})
 
     except InvalidId as e:
-        logger.exception(e)
         return jsonify({"status": "error", "error": "There is no recommendation with such ID"}), 404

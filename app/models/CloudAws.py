@@ -1,7 +1,6 @@
 import logging
 
 from app.models.Recommendation import Recommendation
-from app.utilities import mongo_helper
 from app.utilities.aws_helper import AWSHelper
 
 logger = logging.getLogger()
@@ -32,8 +31,6 @@ class CloudAws:
 
     def scanRecommendations(self, recommendation_type=None):
         if recommendation_type is not None:
-            mongo_helper.delete_all(collection="recommendations", query={"accountId": self.account_id,
-                                                                         "type": recommendation_type})
             recommendation_class, msg = self.get_recommendation_class_by_name(recommendation_type)
             if recommendation_class is not None:
                 logger.info(msg)
@@ -41,7 +38,6 @@ class CloudAws:
             else:
                 logger.exception(msg)
         else:
-            mongo_helper.delete_all(collection="recommendations", query={"accountId": self.account_id})
             for rec in Recommendation.__subclasses__():
                 rec(helper=self.aws, account_id=self.account_id).scan()
 

@@ -25,8 +25,8 @@ class InstanceType(Recommendation):
         return total_savings
 
     def get(self):
-        return mongo_helper.find(collection="recommendations", query={"accountId": self.account_id,
-                                                                      "type": self.__class__.__name__})
+        return mongo_helper.find_latest(collection="recommendations", query={"accountId": self.account_id,
+                                                                             "type": self.__class__.__name__})
 
     def remediate(self):
         recommendation = self.get()

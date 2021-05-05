@@ -13,6 +13,9 @@ class MongoHelper:
     def find(self, collection, query):
         return self.db[collection].find_one(query)
 
+    def find_latest(self, collection, query):
+        return self.db[collection].find_one(query, sort=[('_id', pymongo.DESCENDING)])
+
     def find_all(self, collection, query):
         return self.db[collection].find(query)
 
